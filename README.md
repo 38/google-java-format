@@ -1,3 +1,8 @@
+Generate unreachable code that can not be identified by compiler:
+```
+	java -jar google-java-format-1.3-SNAPSHOT-all-deps.jar -M test.java > test1.java
+```
+
 # google-java-format
 
 `google-java-format` is a program that reformats Java source code to comply with
