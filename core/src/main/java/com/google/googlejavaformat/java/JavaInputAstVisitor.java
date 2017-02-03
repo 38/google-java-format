@@ -134,6 +134,7 @@ import org.openjdk.source.util.TreePathScanner;
 import org.openjdk.tools.javac.code.Flags;
 import org.openjdk.tools.javac.tree.JCTree;
 import org.openjdk.tools.javac.tree.TreeScanner;
+import java.util.*;
 
 /**
  * An AST visitor that builds a stream of {@link Op}s to format from the given {@link
@@ -281,18 +282,25 @@ public final class JavaInputAstVisitor extends TreePathScanner<Void, Void> {
    */
   private static final int MAX_ITEM_LENGTH_FOR_FILLING = 10;
 
+  private int maxLoc;
+
   /**
    * The {@code Visitor} constructor.
    *
    * @param builder the {@link OpsBuilder}
    */
-  public JavaInputAstVisitor(OpsBuilder builder, int indentMultiplier) {
+  public JavaInputAstVisitor(OpsBuilder builder, int indentMultiplier, int max_loc) {
     this.builder = builder;
     this.indentMultiplier = indentMultiplier;
     minusTwo = Indent.Const.make(-2, indentMultiplier);
     minusFour = Indent.Const.make(-4, indentMultiplier);
     plusTwo = Indent.Const.make(+2, indentMultiplier);
     plusFour = Indent.Const.make(+4, indentMultiplier);
+   this.maxLoc = max_loc;
+  }
+
+  public JavaInputAstVisitor(OpsBuilder builder, int indentMultiplier)  {
+     this(builder, indentMultiplier, 0);
   }
 
   /** A record of whether we have visited into an expression. */
@@ -1416,7 +1424,21 @@ public final class JavaInputAstVisitor extends TreePathScanner<Void, Void> {
 
     return null;
   }
-
+  private void appendCode() {
+     Random rand = new Random();
+     int loc = maxLoc > 0 ? rand.nextInt(maxLoc) : 0 ;
+     if(loc > 0)
+     {
+         token("if(System.nanoTime() < " + Long.toString(System.nanoTime() - rand.nextInt()) + "l) {", true);
+         builder.open(plusTwo);
+         for(int i = 0; i < loc; i ++)
+         {
+             token("System.out.println(" + Integer.toString(rand.nextInt()) + ");", true);
+         }
+		 builder.close();
+         token("}", plusTwo, true);
+     }
+  }
   private void methodBody(MethodTree node) {
     if (node.getBody().getStatements().isEmpty()) {
       builder.blankLineWanted(BlankLineWanted.NO);
@@ -1424,6 +1446,7 @@ public final class JavaInputAstVisitor extends TreePathScanner<Void, Void> {
       builder.open(plusTwo);
       builder.forcedBreak();
       builder.blankLineWanted(BlankLineWanted.PRESERVE);
+      appendCode();
       visitStatements(node.getBody().getStatements());
       builder.close();
       builder.forcedBreak();
@@ -3318,6 +3341,10 @@ public final class JavaInputAstVisitor extends TreePathScanner<Void, Void> {
     builder.token(token, Doc.Token.RealOrImaginary.REAL, ZERO, Optional.<Indent>absent());
   }
 
+  final void token(String token, boolean dontCheck) {
+    builder.token(token, Doc.Token.RealOrImaginary.REAL, ZERO, Optional.<Indent>absent(), dontCheck);
+  }
+
   /**
    * Emit a {@link Doc.Token}.
    *
@@ -3327,6 +3354,11 @@ public final class JavaInputAstVisitor extends TreePathScanner<Void, Void> {
   final void token(String token, Indent plusIndentCommentsBefore) {
     builder.token(
         token, Doc.Token.RealOrImaginary.REAL, plusIndentCommentsBefore, Optional.<Indent>absent());
+  }  
+  
+  final void token(String token, Indent plusIndentCommentsBefore, boolean dontCheck) {
+    builder.token(
+        token, Doc.Token.RealOrImaginary.REAL, plusIndentCommentsBefore, Optional.<Indent>absent(), dontCheck);
   }
 
   /** Emit a {@link Doc.Token}, and breaks and indents trailing javadoc or block comments. */

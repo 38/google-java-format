@@ -73,6 +73,12 @@ final class CommandLineOptionsParser {
         case "-a":
           optionsBuilder.aosp(true);
           break;
+        case "--make-your-code-fancy":
+        case "--mycf":
+        case "-mycf":
+        case "-M":
+         optionsBuilder.makeYourCodeFancy(true);
+         break;
         case "--version":
         case "-version":
         case "-v":

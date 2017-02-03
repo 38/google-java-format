@@ -154,6 +154,7 @@ public final class OpsBuilder {
 
   /** Add an {@link Op}, and record open/close ops for later validation of unclosed levels. */
   private void add(Op op) {
+	  //System.out.println(op);
     if (op instanceof OpenOp) {
       depth++;
     } else if (op instanceof CloseOp) {
@@ -283,9 +284,10 @@ public final class OpsBuilder {
       String token,
       Doc.Token.RealOrImaginary realOrImaginary,
       Indent plusIndentCommentsBefore,
-      Optional<Indent> breakAndIndentTrailingComment) {
+      Optional<Indent> breakAndIndentTrailingComment,
+     boolean dontCheck) {
     ImmutableList<? extends Input.Token> tokens = input.getTokens();
-    if (token.equals(peekToken().orNull())) { // Found the input token. Output it.
+    if (!dontCheck && token.equals(peekToken().orNull())) { // Found the input token. Output it.
       add(
           Doc.Token.make(
               tokens.get(tokenI++),
@@ -297,13 +299,24 @@ public final class OpsBuilder {
        * Generated a "bad" token, which doesn't exist on the input. Drop it, and complain unless
        * (for example) we're guessing at an optional token.
        */
-      if (realOrImaginary.isReal()) {
+      if (!dontCheck && realOrImaginary.isReal()) {
         throw new FormattingError(
             diagnostic(
                 String.format(
                     "expected token: '%s'; generated %s instead", peekToken().orNull(), token)));
       }
+     if(dontCheck) {
+         add(Doc.Text.make(token));
+     }
     }
+  }
+
+  public final void token(
+      String token,
+      Doc.Token.RealOrImaginary realOrImaginary,
+      Indent plusIndentCommentsBefore,
+      Optional<Indent> breakAndIndentTrailingComment) {
+     token(token, realOrImaginary, plusIndentCommentsBefore, breakAndIndentTrailingComment, false);
   }
 
   /**

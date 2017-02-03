@@ -37,7 +37,9 @@ public class JavaFormatterOptions {
     GOOGLE(1),
 
     /** The AOSP-compliant configuration. */
-    AOSP(2);
+    AOSP(2),
+   
+   MYCF(3);
 
     private final int indentationMultiplier;
 
@@ -50,10 +52,14 @@ public class JavaFormatterOptions {
     }
   }
 
-  private final Style style;
+  private Style style;
 
   private JavaFormatterOptions(Style style) {
     this.style = style;
+  }
+
+  public void clearMycf() {
+	  this.style = style.GOOGLE;
   }
 
   /** Returns the maximum formatted width */
@@ -64,6 +70,14 @@ public class JavaFormatterOptions {
   /** Returns the multiplier for the unit of indent */
   public int indentationMultiplier() {
     return style.indentationMultiplier();
+  }
+
+  public int maxLoc() {
+     return style == style.MYCF ? 1000 : 0;
+  }
+
+  public boolean isMycf() {
+	  return style.MYCF == style;
   }
 
   /** Returns the default formatting options. */

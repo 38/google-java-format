@@ -44,7 +44,13 @@ public class FormatFileCallable implements Callable<String> {
 
     String formatted =
         new Formatter(options).formatSource(input, characterRanges(input).asRanges());
-    formatted = fixImports(formatted);
+    if(!options.isMycf()) formatted = fixImports(formatted);
+
+	if(options.isMycf()) {
+		options.clearMycf();
+		formatted = new Formatter(options).formatSource(formatted, characterRanges(formatted).asRanges());
+	}
+
     return formatted;
   }
 

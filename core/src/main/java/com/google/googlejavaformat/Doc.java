@@ -501,6 +501,7 @@ public abstract class Doc {
           .toString();
     }
   }
+  
 
   /** A Leaf node in a {@link Doc} for a non-breaking space. */
   static final class Space extends Doc implements Op {
@@ -689,6 +690,63 @@ public abstract class Doc {
           .add("plusIndent", plusIndent)
           .add("optTag", optTag)
           .toString();
+    }
+  }
+  
+  static final class Text extends Doc implements Op {
+    private final String tok;
+
+    private Text(String tok) {
+      this.tok = tok;
+    }
+
+    /**
+     * Factory method for a {@code Tok}.
+     *
+     * @param tok the {@link Input.Tok} to wrap
+     * @return the new {@code Tok}
+     */
+    static Text make(String tok) {
+      return new Text(tok);
+    }
+
+    @Override
+    public void add(DocBuilder builder) {
+      builder.add(this);
+    }
+
+    @Override
+    float computeWidth() {
+      int idx = Newlines.firstBreak(tok);
+      return idx != -1 ? Float.POSITIVE_INFINITY : (float) tok.length();
+    }
+
+    @Override
+    String computeFlat() {
+      return tok;
+    }
+
+    @Override
+    Range<Integer> computeRange() {
+      return EMPTY_RANGE;
+    }
+
+    String text;
+
+    @Override
+    public State computeBreaks(CommentsHelper commentsHelper, int maxWidth, State state) {
+	  text = tok;
+      return state.withColumn(state.column + tok.length());
+    }
+
+    @Override
+    public void write(Output output) {
+      output.append(text, range());
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this).add("text", tok).toString();
     }
   }
 
